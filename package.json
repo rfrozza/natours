@@ -1,0 +1,25 @@
+{
+  "name": "natours",
+  "version": "1.0.0",
+  "description": "NodeJs, Express and MongoDB project",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rfrozza/natours.git"
+  },
+  "author": "Renan Frozza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rfrozza/natours/issues"
+  },
+  "homepage": "https://github.com/rfrozza/natours#readme",
+  "dependencies": {
+    "express": "^4.17.3"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
