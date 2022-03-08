@@ -4,7 +4,7 @@
   "description": "NodeJs, Express and MongoDB project",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/rfrozza/natours#readme",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
