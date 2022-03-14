@@ -50,7 +50,7 @@ exports.getTour = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status().json({
+    res.status(404).json({
       status: 'fail',
       message: err,
     });
