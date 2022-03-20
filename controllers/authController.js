@@ -11,6 +11,17 @@ const signToken = (id) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+const createSendToken = (user, statusCode, res) => {
+  const token = signToken(user._id);
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
 exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     name: req.body.name,
@@ -20,15 +31,15 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     passwordChangedAt: req.body.passwordChangedAt,
   });
-
-  const token = signToken(newUser._id);
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser,
-    },
-  });
+  createSendToken(newUser, 201, res);
+  // const token = signToken(newUser._id);
+  // res.status(201).json({
+  //   status: 'success',
+  //   token,
+  //   data: {
+  //     user: newUser,
+  //   },
+  // });
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -46,11 +57,12 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) if everything is ok, send token to the client
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
+  // const token = signToken(user._id);
+  // res.status(200).json({
+  //   status: 'success',
+  //   token,
+  // });
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -73,21 +85,21 @@ exports.protect = catchAsync(async (req, res, next) => {
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
   // 3) Check if user still exists
-  const currenthUser = await User.findById(decoded.id);
-  if (!currenthUser) {
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
     return next(
       new AppError('The user belonging to this token does no longer exist.')
     );
   }
 
   // 4) Check if user changed password after the token was issued
-  if (currenthUser.changedPasswordAfter(decoded.iat)) {
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError('User recently changed password! Please log in again.', 401)
     );
   }
   // Grant access to protected route
-  req.user = currenthUser;
+  req.user = currentUser;
   next();
 });
 
@@ -166,9 +178,25 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   // 3) Update changedPasswordAt property for the new user
 
   // 4) Log the user in, send JWT
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
+  // const token = signToken(user._id);
+  // res.status(200).json({
+  //   status: 'success',
+  //   token,
+  // });
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Get user from collection
+  const user = await User.findById(req.user.id).select('+password');
+  // 2) Check if POSTed current password is corret
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong.', 401));
+  }
+  // 3) If so, update password
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  // 4) Log user in, send JWT
+  createSendToken(user, 200, res);
 });
